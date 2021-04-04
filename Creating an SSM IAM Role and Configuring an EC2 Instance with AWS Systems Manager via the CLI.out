@@ -1,0 +1,322 @@
+[cloud_user@ip-10-0-1-37 ~]$ aws iam list-policies --scope AWS --query "Policies[?PolicyName == 'AmazonEC2RoleforSSM']"
+[
+    {
+        "PolicyName": "AmazonEC2RoleforSSM", 
+        "PermissionsBoundaryUsageCount": 0, 
+        "CreateDate": "2015-05-29T17:48:35Z", 
+        "AttachmentCount": 0, 
+        "IsAttachable": true, 
+        "PolicyId": "ANPAI6TL3SMY22S4KMMX6", 
+        "DefaultVersionId": "v8", 
+        "Path": "/service-role/", 
+        "Arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM", 
+        "UpdateDate": "2019-01-24T19:20:51Z"
+    }
+]
+
+[cloud_user@ip-10-0-1-37 ~]$ aws iam get-policy-version --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM --version-id v8
+{
+    "PolicyVersion": {
+        "CreateDate": "2019-01-24T19:20:51Z", 
+        "VersionId": "v8", 
+        "Document": {
+            "Version": "2012-10-17", 
+            "Statement": [
+                {
+                    "Action": [
+                        "ssm:DescribeAssociation", 
+                        "ssm:GetDeployablePatchSnapshotForInstance", 
+                        "ssm:GetDocument", 
+                        "ssm:DescribeDocument", 
+                        "ssm:GetManifest", 
+                        "ssm:GetParameters", 
+                        "ssm:ListAssociations", 
+                        "ssm:ListInstanceAssociations", 
+                        "ssm:PutInventory", 
+                        "ssm:PutComplianceItems", 
+                        "ssm:PutConfigurePackageResult", 
+                        "ssm:UpdateAssociationStatus", 
+                        "ssm:UpdateInstanceAssociationStatus", 
+                        "ssm:UpdateInstanceInformation"
+                    ], 
+                    "Resource": "*", 
+                    "Effect": "Allow"
+                }, 
+                {
+                    "Action": [
+                        "ssmmessages:CreateControlChannel", 
+                        "ssmmessages:CreateDataChannel", 
+                        "ssmmessages:OpenControlChannel", 
+                        "ssmmessages:OpenDataChannel"
+                    ], 
+                    "Resource": "*", 
+                    "Effect": "Allow"
+                }, 
+                {
+                    "Action": [
+                        "ec2messages:AcknowledgeMessage", 
+                        "ec2messages:DeleteMessage", 
+                        "ec2messages:FailMessage", 
+                        "ec2messages:GetEndpoint", 
+                        "ec2messages:GetMessages", 
+                        "ec2messages:SendReply"
+                    ], 
+                    "Resource": "*", 
+                    "Effect": "Allow"
+                }, 
+                {
+                    "Action": [
+                        "cloudwatch:PutMetricData"
+                    ], 
+                    "Resource": "*", 
+                    "Effect": "Allow"
+                }, 
+                {
+                    "Action": [
+                        "ec2:DescribeInstanceStatus"
+                    ], 
+                    "Resource": "*", 
+                    "Effect": "Allow"
+                }, 
+                {
+                    "Action": [
+                        "ds:CreateComputer", 
+                        "ds:DescribeDirectories"
+                    ], 
+                    "Resource": "*", 
+                    "Effect": "Allow"
+                }, 
+                {
+                    "Action": [
+                        "logs:CreateLogGroup", 
+                        "logs:CreateLogStream", 
+                        "logs:DescribeLogGroups", 
+                        "logs:DescribeLogStreams", 
+                        "logs:PutLogEvents"
+                    ], 
+                    "Resource": "*", 
+                    "Effect": "Allow"
+                }, 
+                {
+                    "Action": [
+                        "s3:GetBucketLocation", 
+                        "s3:PutObject", 
+                        "s3:GetObject", 
+                        "s3:GetEncryptionConfiguration", 
+                        "s3:AbortMultipartUpload", 
+                        "s3:ListMultipartUploadParts", 
+                        "s3:ListBucket", 
+                        "s3:ListBucketMultipartUploads"
+                    ], 
+                    "Resource": "*", 
+                    "Effect": "Allow"
+                }
+            ]
+        }, 
+        "IsDefaultVersion": true
+    }
+}
+
+[cloud_user@ip-10-0-1-37 ~]$ nano EC2Trust.json
+[cloud_user@ip-10-0-1-37 ~]$ cat EC2Trust.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Principal": {"Service": "ec2.amazonaws.com"},
+    "Action": "sts:AssumeRole"
+  }
+}
+
+[cloud_user@ip-10-0-1-37 ~]$ aws iam create-role --role-name MyEC2SSMRole --assume-role-policy-document file://EC2Trust.json
+{
+    "Role": {
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17", 
+            "Statement": {
+                "Action": "sts:AssumeRole", 
+                "Effect": "Allow", 
+                "Principal": {
+                    "Service": "ec2.amazonaws.com"
+                }
+            }
+        }, 
+        "RoleId": "AROATI5CO747TUTPFWGK2", 
+        "CreateDate": "2021-04-04T15:51:01Z", 
+        "RoleName": "MyEC2SSMRole", 
+        "Path": "/", 
+        "Arn": "arn:aws:iam::225289633599:role/MyEC2SSMRole"
+    }
+}
+
+[cloud_user@ip-10-0-1-37 ~]$ aws iam attach-role-policy --role-name MyEC2SSMRole --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+
+[cloud_user@ip-10-0-1-37 ~]$ aws iam create-instance-profile --instance-profile-name MyEC2InstanceProfile
+{
+    "InstanceProfile": {
+        "InstanceProfileId": "AIPATI5CO7477DQ7WIRD2", 
+        "Roles": [], 
+        "CreateDate": "2021-04-04T15:52:06Z", 
+        "InstanceProfileName": "MyEC2InstanceProfile", 
+        "Path": "/", 
+        "Arn": "arn:aws:iam::225289633599:instance-profile/MyEC2InstanceProfile"
+    }
+}
+[cloud_user@ip-10-0-1-37 ~]$ aws iam add-role-to-instance-profile --instance-profile-name MyEC2InstanceProfile --role-name MyEC2SSMRole
+
+[cloud_user@ip-10-0-1-37 ~]$ aws ec2 describe-subnets --query "Subnets[?Tags[?Value == 'SubnetA'] ].SubnetId | [0]"
+"subnet-02fd6c4453d2ef4f3"
+
+[cloud_user@ip-10-0-1-37 ~]$ aws ec2 describe-security-groups \
+> --filters Name=group-name,Values=SG \
+> --query "SecurityGroups[?GroupName == 'SG'].GroupId | [0]"
+"sg-0f674d811fae7f7f1"
+
+[cloud_user@ip-10-0-1-37 ~]$ aws ec2 describe-images \
+> --filters "Name=architecture,Values=x86_64" "Name=description,Values=*Amazon Linux 2 AMI 2.0.2019*gp2" "Name=owner-id,Values=137112412989" "Name=image-type,Values=machine" \
+> --query "sort_by(Images, &CreationDate)[::-1].ImageId | [0]"
+"ami-062f7200baf2fa504"
+
+[cloud_user@ip-10-0-1-37 ~]$ aws ec2 run-instances --associate-public-ip-address \
+> --security-group-ids sg-0f674d811fae7f7f1 \
+> --iam-instance-profile Arn=arn:aws:iam::225289633599:instance-profile/MyEC2InstanceProfile \
+> --instance-type t2.micro \
+> --image-id ami-062f7200baf2fa504 \
+> --subnet-id subnet-02fd6c4453d2ef4f3 \
+> --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=MyEC2}]"
+{
+    "Instances": [
+        {
+            "Monitoring": {
+                "State": "disabled"
+            }, 
+            "PublicDnsName": "", 
+            "StateReason": {
+                "Message": "pending", 
+                "Code": "pending"
+            }, 
+            "State": {
+                "Code": 0, 
+                "Name": "pending"
+            }, 
+            "EbsOptimized": false, 
+            "LaunchTime": "2021-04-04T15:56:32.000Z", 
+            "PrivateIpAddress": "10.0.1.94", 
+            "ProductCodes": [], 
+            "VpcId": "vpc-04a3eff5e835c71d1", 
+            "CpuOptions": {
+                "CoreCount": 1, 
+                "ThreadsPerCore": 1
+            }, 
+            "StateTransitionReason": "", 
+            "InstanceId": "i-0c26a15ffdd5ca5fb", 
+            "EnaSupport": true, 
+            "ImageId": "ami-062f7200baf2fa504", 
+            "PrivateDnsName": "ip-10-0-1-94.ec2.internal", 
+            "SecurityGroups": [
+                {
+                    "GroupName": "SG", 
+                    "GroupId": "sg-0f674d811fae7f7f1"
+                }
+            ], 
+            "ClientToken": "", 
+            "SubnetId": "subnet-02fd6c4453d2ef4f3", 
+            "InstanceType": "t2.micro", 
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open"
+            }, 
+            "NetworkInterfaces": [
+                {
+                    "Status": "in-use", 
+                    "MacAddress": "0a:cb:97:f5:3d:59", 
+                    "SourceDestCheck": true, 
+                    "VpcId": "vpc-04a3eff5e835c71d1", 
+                    "Description": "", 
+                    "NetworkInterfaceId": "eni-0997ce36d4247dd98", 
+                    "PrivateIpAddresses": [
+                        {
+                            "PrivateDnsName": "ip-10-0-1-94.ec2.internal", 
+                            "Primary": true, 
+                            "PrivateIpAddress": "10.0.1.94"
+                        }
+                    ], 
+                    "PrivateDnsName": "ip-10-0-1-94.ec2.internal", 
+                    "InterfaceType": "interface", 
+                    "Attachment": {
+                        "Status": "attaching", 
+                        "DeviceIndex": 0, 
+                        "DeleteOnTermination": true, 
+                        "AttachmentId": "eni-attach-0b0a4c0abb4ac9cda", 
+                        "AttachTime": "2021-04-04T15:56:32.000Z"
+                    }, 
+                    "Groups": [
+                        {
+                            "GroupName": "SG", 
+                            "GroupId": "sg-0f674d811fae7f7f1"
+                        }
+                    ], 
+                    "Ipv6Addresses": [], 
+                    "OwnerId": "225289633599", 
+                    "SubnetId": "subnet-02fd6c4453d2ef4f3", 
+                    "PrivateIpAddress": "10.0.1.94"
+                }
+            ], 
+            "SourceDestCheck": true, 
+            "Placement": {
+                "Tenancy": "default", 
+                "GroupName": "", 
+                "AvailabilityZone": "us-east-1a"
+            }, 
+            "Hypervisor": "xen", 
+            "BlockDeviceMappings": [], 
+            "Architecture": "x86_64", 
+            "RootDeviceType": "ebs", 
+            "IamInstanceProfile": {
+                "Id": "AIPATI5CO7477DQ7WIRD2", 
+                "Arn": "arn:aws:iam::225289633599:instance-profile/MyEC2InstanceProfile"
+            }, 
+            "RootDeviceName": "/dev/xvda", 
+            "VirtualizationType": "hvm", 
+            "Tags": [
+                {
+                    "Value": "MyEC2", 
+                    "Key": "Name"
+                }
+            ], 
+            "MetadataOptions": {
+                "State": "pending", 
+                "HttpEndpoint": "enabled", 
+                "HttpTokens": "optional", 
+                "HttpPutResponseHopLimit": 1
+            }, 
+            "AmiLaunchIndex": 0
+        }
+    ], 
+    "ReservationId": "r-0b0ee01009f7cdd9b", 
+    "Groups": [], 
+    "OwnerId": "225289633599"
+}
+
+[cloud_user@ip-10-0-1-37 ~]$ aws ec2 describe-instances --filters Name=tag:Name,Values=MyEC2 --query "Reservations[].Instances[].InstanceId"
+[
+    "i-0c26a15ffdd5ca5fb"
+]
+
+[cloud_user@ip-10-0-1-37 ~]$ aws ssm describe-instance-information --query "InstanceInformationList[?InstanceId == 'aws ssm describe-instance-information --query "InstanceInformationList[?InstanceId == '<INSTANCE-ID>']"^C"
+
+[cloud_user@ip-10-0-1-37 ~]$ aws ssm describe-instance-information --query "InstanceInformationList[?InstanceId == 'i-0c26a15ffdd5ca5fb']"
+[
+    {
+        "IsLatestVersion": false, 
+        "ComputerName": "ip-10-0-1-94.ec2.internal", 
+        "PingStatus": "Online", 
+        "InstanceId": "i-0c26a15ffdd5ca5fb", 
+        "IPAddress": "10.0.1.94", 
+        "ResourceType": "EC2Instance", 
+        "AgentVersion": "2.3.714.0", 
+        "PlatformVersion": "2", 
+        "PlatformName": "Amazon Linux", 
+        "PlatformType": "Linux", 
+        "LastPingDateTime": 1617551833.803
+    }
+]

@@ -19,7 +19,7 @@ ssh cloud_user@<PUBLIC_IP>
 1. Note the policy Arn and DefaultVersionId in the output from the following command:
 
 ``` 
-aws iam list-policies --scope AWS --query "Policies[?PolicyName == 'AmazonEC2RoleforSSM']"
+aws iam list-policies --scope AWS --query "Policies[?PolicyName == 'AmazonSSMManagedInstanceCore']"
 ``` 
 
 2. Optionally, you may also use the following command in addition to the value of DefaultVersionId from the above command to look at the JSON document of the policy in question via the CLI:

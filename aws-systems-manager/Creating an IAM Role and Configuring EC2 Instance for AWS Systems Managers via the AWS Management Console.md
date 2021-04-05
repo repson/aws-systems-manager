@@ -15,7 +15,7 @@ Log in to the live AWS environment using the credentials provided. Make sure you
 3. Select AWS service as the type of trusted entity.
 4. Select EC2 as the service that will use the role.
 5. Click Next: Permissions.
-6. On the permissions policies page, search for (in the Filter policies box) and select AmazonEC2RoleforSSM.
+6. On the permissions policies page, search for (in the Filter policies box) and select AmazonSSMManagedInstanceCore.
 7. Click Next: Tags.
 8. Leave as default, and click Next: Review.
 9. Enter a Role name of "MyEC2SSMRole".
